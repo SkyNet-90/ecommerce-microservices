@@ -29,4 +29,4 @@ class User(Resource):
 api.add_resource(User, "/user/<string:username>", "/user")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
