@@ -1,0 +1,40 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Set your ACR name
+  acrName: 'ecommerceregistry1'
+  imageName: 'user-service'
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    steps:
+    - task: Docker@2
+      inputs:
+        command: 'buildAndPush'
+        repository: '$(acrName).azurecr.io/$(imageName)'
+        dockerfile: '**/Dockerfile'
+        containerRegistry: '$(acrName)'
+        tags: |
+          $(Build.BuildId)
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    environment: 'staging'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: kubectl apply -f deployment.yaml --record
+            displayName: 'Deploy to AKS'
