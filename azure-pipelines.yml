@@ -1,7 +1,3 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
 trigger:
 - main
 
@@ -23,18 +19,19 @@ stages:
         command: 'buildAndPush'
         repository: '$(acrName).azurecr.io/$(imageName)'
         dockerfile: '**/Dockerfile'
-        containerRegistry: '$(acrName)'
+        containerRegistry: 'ecommerceregistry1'
         tags: |
           $(Build.BuildId)
 
 - stage: Deploy
   dependsOn: Build
   jobs:
-  - deployment: Deploy
-    environment: 'staging'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - script: kubectl apply -f user-service/deployment.yaml --record
-            displayName: 'Deploy to AKS'
+  - job: Deploy
+    steps:
+    - script: |
+        pwd
+        ls -R
+      displayName: 'Show working directory and files'
+
+    - script: kubectl apply -f user-service/deployment.yaml --record
+      displayName: 'Deploy to AKS'
