@@ -36,5 +36,5 @@ stages:
       runOnce:
         deploy:
           steps:
-          - script: kubectl apply -f deployment.yaml --record
+          - script: kubectl apply -f user-service/deployment.yaml --record
             displayName: 'Deploy to AKS'
