@@ -5,7 +5,6 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  # Set your ACR name
   acrName: 'ecommerceregistry1'
   imageName: 'user-service'
 
@@ -28,10 +27,19 @@ stages:
   jobs:
   - job: Deploy
     steps:
-    - script: |
-        pwd
-        ls -R
-      displayName: 'Show working directory and files'
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'e56b0db8-148d-4dcf-8041-10c84a4dcfb0'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az aks get-credentials --resource-group rg_ecommerce-microservices --name ecommerce-aks --overwrite-existing
+        addSpnToEnvironment: true
 
-    - script: kubectl apply -f user-service/deployment.yaml --record
+    - script: |
+        kubectl get nodes
+      displayName: 'Check Kubernetes Cluster Connection'
+
+    - script: |
+        kubectl apply -f user-service/deployment.yaml --record
       displayName: 'Deploy to AKS'
