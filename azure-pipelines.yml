@@ -52,4 +52,12 @@ stages:
         scriptLocation: 'inlineScript'
         inlineScript: |
           az aks get-credentials --resource-group rg_ecommerce-microservices --name ecommerce-aks
-          kubectl apply -f deployment.yaml
+          
+          # Apply User Service deployment
+          kubectl apply -f user-service/deployment.yaml
+          
+          # Apply Product Service deployment
+          kubectl apply -f product-service/deployment.yaml
+          
+          # Apply Order Service deployment
+          kubectl apply -f order-service/deployment.yaml
