@@ -1,9 +1,3 @@
-trigger:
-- main
-
-pool:
-  vmImage: 'ubuntu-latest'
-
 variables:
   acrName: 'ecommerceregistry1'
 
@@ -21,6 +15,7 @@ stages:
         containerRegistry: 'ecommerceregistry1'
         tags: |
           $(Build.BuildId)
+          latest
 
     # Build and push the Product Service Docker image
     - task: Docker@2
@@ -31,6 +26,7 @@ stages:
         containerRegistry: 'ecommerceregistry1'
         tags: |
           $(Build.BuildId)
+          latest
 
     # Build and push the Order Service Docker image
     - task: Docker@2
@@ -41,6 +37,7 @@ stages:
         containerRegistry: 'ecommerceregistry1'
         tags: |
           $(Build.BuildId)
+          latest
 
 - stage: Deploy
   dependsOn: Build
@@ -52,27 +49,3 @@ stages:
       inputs:
         azureSubscription: 'azure-service-connection'
         scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az aks get-credentials --resource-group rg_ecommerce-microservices --name ecommerce-aks --overwrite-existing
-        addSpnToEnvironment: true
-
-    # Check Kubernetes Cluster Connection
-    - script: |
-        kubectl get nodes
-      displayName: 'Check Kubernetes Cluster Connection'
-
-    # Deploy the User Service to AKS
-    - script: |
-        kubectl apply -f user-service/deployment.yaml --record
-      displayName: 'Deploy User Service to AKS'
-
-    # Deploy the Product Service to AKS
-    - script: |
-        kubectl apply -f product-service/deployment.yaml --record
-      displayName: 'Deploy Product Service to AKS'
-
-    # Deploy the Order Service to AKS
-    - script: |
-        kubectl apply -f order-service/deployment.yaml --record
-      displayName: 'Deploy Order Service to AKS'
