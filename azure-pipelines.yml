@@ -32,6 +32,16 @@ stages:
         tags: |
           $(Build.BuildId)
 
+    # Build and push the Order Service Docker image
+    - task: Docker@2
+      inputs:
+        command: 'buildAndPush'
+        repository: '$(acrName).azurecr.io/order-service'
+        dockerfile: 'order-service/Dockerfile'
+        containerRegistry: 'ecommerceregistry1'
+        tags: |
+          $(Build.BuildId)
+
 - stage: Deploy
   dependsOn: Build
   jobs:
@@ -61,3 +71,8 @@ stages:
     - script: |
         kubectl apply -f product-service/deployment.yaml --record
       displayName: 'Deploy Product Service to AKS'
+
+    # Deploy the Order Service to AKS
+    - script: |
+        kubectl apply -f order-service/deployment.yaml --record
+      displayName: 'Deploy Order Service to AKS'
