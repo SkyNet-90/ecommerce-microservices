@@ -39,7 +39,7 @@ stages:
           $(Build.BuildId)
           latest
 
-- stage: Deploy
+ stage: Deploy
   dependsOn: Build
   jobs:
   - job: Deploy
@@ -49,3 +49,7 @@ stages:
       inputs:
         azureSubscription: 'azure-service-connection'
         scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az aks get-credentials --resource-group rg_ecommerce-microservices --name ecommerce-aks
+          kubectl apply -f deployment.yaml
