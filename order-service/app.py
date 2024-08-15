@@ -1,9 +1,13 @@
+import os
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 import requests
 
 app = Flask(__name__)
 api = Api(app)
+
+# Retrieve the Product Service URL from environment variable
+product_service_url = os.getenv("PRODUCT_SERVICE_URL", "http://product-service")
 
 orders = []
 
@@ -19,10 +23,11 @@ class Order(Resource):
 
         # Example interaction with Product Service to check product availability
         product_id = data.get("product_id")
-        product_response = requests.get(f"http://product-service/product/{product_id}")
-        
-        if product_response.status_code != 200:
-            return "Product not available", 404
+        try:
+            product_response = requests.get(f"{product_service_url}/product/{product_id}")
+            product_response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            return {"error": "Failed to connect to Product Service"}, 500
 
         order = {
             "id": len(orders) + 1,

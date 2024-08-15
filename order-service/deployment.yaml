@@ -17,6 +17,9 @@ spec:
         image: ecommerceregistry1.azurecr.io/order-service:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: PRODUCT_SERVICE_URL
+          value: "http://product-service"
 ---
 apiVersion: v1
 kind: Service
