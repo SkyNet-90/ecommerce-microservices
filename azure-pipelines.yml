@@ -6,18 +6,28 @@ pool:
 
 variables:
   acrName: 'ecommerceregistry1'
-  imageName: 'user-service'
 
 stages:
 - stage: Build
   jobs:
   - job: Build
     steps:
+    # Build and push the User Service Docker image
     - task: Docker@2
       inputs:
         command: 'buildAndPush'
-        repository: '$(acrName).azurecr.io/$(imageName)'
-        dockerfile: '**/Dockerfile'
+        repository: '$(acrName).azurecr.io/user-service'
+        dockerfile: 'user-service/Dockerfile'
+        containerRegistry: 'ecommerceregistry1'
+        tags: |
+          $(Build.BuildId)
+
+    # Build and push the Product Service Docker image
+    - task: Docker@2
+      inputs:
+        command: 'buildAndPush'
+        repository: '$(acrName).azurecr.io/product-service'
+        dockerfile: 'product-service/Dockerfile'
         containerRegistry: 'ecommerceregistry1'
         tags: |
           $(Build.BuildId)
@@ -27,6 +37,7 @@ stages:
   jobs:
   - job: Deploy
     steps:
+    # Configure kubectl to use the AKS credentials
     - task: AzureCLI@2
       inputs:
         azureSubscription: 'azure-service-connection'
@@ -36,10 +47,17 @@ stages:
           az aks get-credentials --resource-group rg_ecommerce-microservices --name ecommerce-aks --overwrite-existing
         addSpnToEnvironment: true
 
+    # Check Kubernetes Cluster Connection
     - script: |
         kubectl get nodes
       displayName: 'Check Kubernetes Cluster Connection'
 
+    # Deploy the User Service to AKS
     - script: |
         kubectl apply -f user-service/deployment.yaml --record
-      displayName: 'Deploy to AKS'
+      displayName: 'Deploy User Service to AKS'
+
+    # Deploy the Product Service to AKS
+    - script: |
+        kubectl apply -f product-service/deployment.yaml --record
+      displayName: 'Deploy Product Service to AKS'
