@@ -1,0 +1,45 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  acrName: 'ecommerceregistry1'
+  imageName: 'user-service'
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    steps:
+    - task: Docker@2
+      inputs:
+        command: 'buildAndPush'
+        repository: '$(acrName).azurecr.io/$(imageName)'
+        dockerfile: '**/Dockerfile'
+        containerRegistry: 'ecommerceregistry1'
+        tags: |
+          $(Build.BuildId)
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'azure-service-connection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az aks get-credentials --resource-group rg_ecommerce-microservices --name ecommerce-aks --overwrite-existing
+        addSpnToEnvironment: true
+
+    - script: |
+        kubectl get nodes
+      displayName: 'Check Kubernetes Cluster Connection'
+
+    - script: |
+        kubectl apply -f user-service/deployment.yaml --record
+      displayName: 'Deploy to AKS'
