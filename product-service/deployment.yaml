@@ -17,6 +17,8 @@ spec:
         image: ecommerceregistry1.azurecr.io/product-service:latest
         ports:
         - containerPort: 5000
+      imagePullSecrets:
+      - name: acr-secret
 ---
 apiVersion: v1
 kind: Service

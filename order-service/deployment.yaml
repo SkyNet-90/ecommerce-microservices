@@ -20,6 +20,8 @@ spec:
         env:
         - name: PRODUCT_SERVICE_URL
           value: "http://product-service"
+      imagePullSecrets:
+      - name: acr-secret
 ---
 apiVersion: v1
 kind: Service
