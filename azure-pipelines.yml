@@ -1,3 +1,9 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
 variables:
   acrName: 'ecommerceregistry1'
 
@@ -10,7 +16,7 @@ stages:
     - task: Docker@2
       inputs:
         command: 'buildAndPush'
-        repository: '$(acrName).azurecr.io/user-service'
+        repository: 'user-service'
         dockerfile: 'user-service/Dockerfile'
         containerRegistry: 'ecommerceregistry1'
         tags: |
@@ -21,7 +27,7 @@ stages:
     - task: Docker@2
       inputs:
         command: 'buildAndPush'
-        repository: '$(acrName).azurecr.io/product-service'
+        repository: 'product-service'
         dockerfile: 'product-service/Dockerfile'
         containerRegistry: 'ecommerceregistry1'
         tags: |
@@ -32,7 +38,7 @@ stages:
     - task: Docker@2
       inputs:
         command: 'buildAndPush'
-        repository: '$(acrName).azurecr.io/order-service'
+        repository: 'order-service'
         dockerfile: 'order-service/Dockerfile'
         containerRegistry: 'ecommerceregistry1'
         tags: |
