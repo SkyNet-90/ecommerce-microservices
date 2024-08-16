@@ -39,3 +39,6 @@ tzdata==2024.1
 urllib3==2.1.0
 Werkzeug==3.0.3
 XlsxWriter==3.2.0
+azure-identity
+azure-keyvault-secrets
+azure-cosmos
