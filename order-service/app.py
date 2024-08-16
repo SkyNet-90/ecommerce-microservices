@@ -40,23 +40,35 @@ class Order(Resource):
     def post(self):
         data = request.get_json()
         product_id = data.get("product_id")
+        user_id = data.get("user_id")
 
         # Interact with Product Service to check product availability
         try:
             product_response = requests.get(f"http://product-service/product/{product_id}")
             product_response.raise_for_status()
+            product_data = product_response.json()
         except requests.exceptions.RequestException as e:
             return {"error": "Failed to connect to Product Service"}, 500
 
+        # Create order
         order = {
-            "id": str(len(orders) + 1),  # Ensure ID is a string for Cosmos DB
-            "user_id": str(data.get("user_id")),
+            "id": str(len(list(container.read_all_items())) + 1),
+            "user_id": user_id,
             "product_id": product_id,
-            "quantity": data.get("quantity"),
-            "status": "pending"
+            "product_name": product_data["name"],
+            "price": product_data["price"],
+            "quantity": data.get("quantity", 1)
         }
-        container.create_item(order)
+
+        container.create_item(body=order)
         return order, 201
+
+    def delete(self, order_id):
+        try:
+            container.delete_item(item=str(order_id), partition_key=str(order_id))
+            return {"message": f"Order with id {order_id} deleted."}, 200
+        except exceptions.CosmosResourceNotFoundError:
+            return {"error": "Order not found"}, 404
 
 api.add_resource(Order, "/order/<int:order_id>", "/order")
 
