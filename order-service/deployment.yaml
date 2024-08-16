@@ -20,6 +20,21 @@ spec:
         env:
         - name: PRODUCT_SERVICE_URL
           value: "http://product-service"
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-sp-credentials
+              key: client-id
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: azure-sp-credentials
+              key: client-secret
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-sp-credentials
+              key: tenant-id
       imagePullSecrets:
       - name: acr-secret1
 ---

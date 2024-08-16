@@ -1,48 +1,61 @@
 import os
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
-import requests
+from azure.cosmos import CosmosClient, PartitionKey, exceptions
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 app = Flask(__name__)
 api = Api(app)
 
-# Retrieve the Product Service URL from environment variable
-product_service_url = os.getenv("PRODUCT_SERVICE_URL", "http://product-service")
+# Set up Azure Key Vault client
+key_vault_name = "ecommercekv1"
+key_vault_uri = f"https://{key_vault_name}.vault.azure.net"
+credential = DefaultAzureCredential()
+client = SecretClient(vault_url=key_vault_uri, credential=credential)
 
-orders = []
+# Retrieve Cosmos DB secrets from Key Vault
+COSMOS_DB_URL = client.get_secret("CosmosDBUrl").value
+COSMOS_DB_KEY = client.get_secret("CosmosDBKey").value
+DATABASE_NAME = "ecommercedb"
+CONTAINER_NAME = "Orders"
+
+# Set up the Cosmos client
+cosmos_client = CosmosClient(COSMOS_DB_URL, COSMOS_DB_KEY)
+database = cosmos_client.create_database_if_not_exists(DATABASE_NAME)
+container = database.create_container_if_not_exists(
+    id=CONTAINER_NAME, 
+    partition_key=PartitionKey(path="/user_id")
+)
 
 class Order(Resource):
     def get(self, order_id):
-        for order in orders:
-            if order["id"] == order_id:
-                return order, 200
-        return "Order not found", 404
+        try:
+            response = container.read_item(item=str(order_id), partition_key=str(order_id))
+            return response
+        except exceptions.CosmosResourceNotFoundError:
+            return {"error": "Order not found"}, 404
 
     def post(self):
         data = request.get_json()
-
-        # Example interaction with Product Service to check product availability
         product_id = data.get("product_id")
+
+        # Interact with Product Service to check product availability
         try:
-            product_response = requests.get(f"{product_service_url}/product/{product_id}")
+            product_response = requests.get(f"http://product-service/product/{product_id}")
             product_response.raise_for_status()
         except requests.exceptions.RequestException as e:
             return {"error": "Failed to connect to Product Service"}, 500
 
         order = {
-            "id": len(orders) + 1,
-            "user_id": data.get("user_id"),
+            "id": str(len(orders) + 1),  # Ensure ID is a string for Cosmos DB
+            "user_id": str(data.get("user_id")),
             "product_id": product_id,
             "quantity": data.get("quantity"),
             "status": "pending"
         }
-        orders.append(order)
+        container.create_item(order)
         return order, 201
-
-    def delete(self, order_id):
-        global orders
-        orders = [order for order in orders if order["id"] != order_id]
-        return f"Order with id {order_id} deleted.", 200
 
 api.add_resource(Order, "/order/<int:order_id>", "/order")
 
