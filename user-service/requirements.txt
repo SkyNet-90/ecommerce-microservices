@@ -10,3 +10,6 @@ MarkupSafe==2.1.5
 pytz==2024.1
 six==1.16.0
 Werkzeug==3.0.3
+azure-identity
+azure-keyvault-secrets
+azure-cosmos
