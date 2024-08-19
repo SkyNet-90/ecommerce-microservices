@@ -26,7 +26,7 @@ cosmos_client = CosmosClient(COSMOS_DB_URL, COSMOS_DB_KEY)
 database = cosmos_client.create_database_if_not_exists(DATABASE_NAME)
 container = database.create_container_if_not_exists(
     id=CONTAINER_NAME, 
-    partition_key=PartitionKey(path="/user_id")
+    partition_key=PartitionKey(path="/userid")
 )
 
 class Order(Resource):
