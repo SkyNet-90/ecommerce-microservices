@@ -2,6 +2,7 @@ import requests
 import os
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
+from flask_cors import CORS
 from azure.cosmos import CosmosClient, PartitionKey, exceptions
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient

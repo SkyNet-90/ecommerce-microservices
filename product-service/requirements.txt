@@ -11,6 +11,7 @@ cycler==0.12.1
 et-xmlfile==1.1.0
 Flask==3.0.3
 Flask-RESTful==0.3.10
+Flask_cors
 fonttools==4.53.0
 idna==3.4
 itsdangerous==2.2.0

@@ -3,6 +3,7 @@ from azure.cosmos import CosmosClient, PartitionKey, exceptions
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flask_restful import Api, Resource
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
