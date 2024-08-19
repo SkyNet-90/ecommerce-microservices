@@ -7,6 +7,7 @@ from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 api = Api(app)
 
 # Set up Azure Key Vault client
