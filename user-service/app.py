@@ -1,18 +1,18 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from flask_restful import Api, Resource
-from werkzeug.security import generate_password_hash, check_password_hash
-from azure.cosmos import CosmosClient, PartitionKey, exceptions
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-import jwt
-import datetime
 import os
 import uuid
+from flask import Flask, request, jsonify
+from flask_restful import Api, Resource
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+from azure.cosmos import CosmosClient, PartitionKey, exceptions
+from werkzeug.security import generate_password_hash
+import logging
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
 api = Api(app)
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 # Set up Azure Key Vault client
 key_vault_name = os.getenv("KEY_VAULT_NAME", "ecommercekv1")
@@ -44,6 +44,9 @@ class User(Resource):
             return jsonify(response), 200
         except exceptions.CosmosResourceNotFoundError:
             return jsonify({"error": "User not found"}), 404
+        except Exception as e:
+            logging.error(f"Error retrieving user: {e}")
+            return jsonify({"error": "Internal Server Error"}), 500
 
     def post(self):
         data = request.get_json()
@@ -64,32 +67,13 @@ class User(Resource):
             container.create_item(body=user)
             return jsonify({"message": "User created successfully"}), 201
         except exceptions.CosmosHttpResponseError as e:
-            return jsonify({"error": str(e)}), 500
+            logging.error(f"Error creating user: {e}")
+            return jsonify({"error": "Internal Server Error"}), 500
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
+            return jsonify({"error": "Internal Server Error"}), 500
 
-class Login(Resource):
-    def post(self):
-        data = request.get_json()
-        username = data.get("username")
-        password = data.get("password")
+api.add_resource(User, '/user', '/user/<string:username>')
 
-        if not username or not password:
-            return jsonify({"error": "Username and password are required"}), 400
-
-        try:
-            user = container.read_item(item=username, partition_key=username)
-            if check_password_hash(user["password"], password):
-                token = jwt.encode({
-                    "username": username,
-                    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-                }, SECRET_KEY, algorithm="HS256")
-                return jsonify({"token": token}), 200
-            else:
-                return jsonify({"error": "Invalid credentials"}), 401
-        except exceptions.CosmosResourceNotFoundError:
-            return jsonify({"error": "User not found"}), 404
-
-api.add_resource(User, "/user/<string:username>")
-api.add_resource(Login, "/login")
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+if __name__ == '__main__':
+    app.run(debug=True)
