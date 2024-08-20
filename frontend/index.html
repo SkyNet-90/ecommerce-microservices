@@ -9,20 +9,29 @@
 <body>
     <h1>Microservices Frontend</h1>
 
-    <h2>Add Product</h2>
-    <form id="productForm">
-        <input type="text" id="productName" placeholder="Product Name" required>
-        <input type="number" id="productPrice" placeholder="Price" step="0.01" required>
-        <input type="number" id="productQuantity" placeholder="Quantity" required>
-        <button type="submit">Add Product</button>
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
     </form>
 
-    <h2>Add Order</h2>
-    <form id="orderForm">
-        <input type="number" id="orderProductId" placeholder="Product ID" required>
-        <input type="number" id="orderQuantity" placeholder="Quantity" required>
-        <button type="submit">Add Order</button>
-    </form>
+    <div id="content" style="display:none;">
+        <h2>Add Product</h2>
+        <form id="productForm">
+            <input type="text" id="productName" placeholder="Product Name" required>
+            <input type="number" id="productPrice" placeholder="Price" step="0.01" required>
+            <input type="number" id="productQuantity" placeholder="Quantity" required>
+            <button type="submit">Add Product</button>
+        </form>
+
+        <h2>Add Order</h2>
+        <form id="orderForm">
+            <input type="number" id="orderProductId" placeholder="Product ID" required>
+            <input type="number" id="orderQuantity" placeholder="Quantity" required>
+            <button type="submit">Add Order</button>
+        </form>
+    </div>
 
     <script src="script.js"></script>
 </body>
